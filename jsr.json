@@ -1,0 +1,5 @@
+{
+  "name": "@iwanglang/observation-visual-acuity",
+  "version": "0.0.3",
+  "exports": "./src/index.ts"
+}
