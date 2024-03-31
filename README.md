@@ -36,8 +36,8 @@ const {
 ```typescript
 import { getVisualAcuityScales } from "@iwanglang/observation-visual-acuity";
 
-const visualAcuityScaleFoot = getVisualAcuityScales("Foot");
-const visualAcuityScaleMetre = getVisualAcuityScales("Metre");
+const visualAcuityScaleFoot = getVisualAcuityScales("foot");
+const visualAcuityScaleMetre = getVisualAcuityScales("metre");
 ```
 
 use `getVisualAcuityScales` function to get list of Visual Acuity Scale for prepare data of Visual Acuity that will save into server

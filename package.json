@@ -3,11 +3,18 @@
   "version": "0.0.3",
   "description": "Observation Visual Acuity",
   "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs"
+  },
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "dev": "vite",
     "prebuild": "rimraf dist",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepack": "bun run build"
   },
   "devDependencies": {
     "@rollup/plugin-babel": "^6.0.4",

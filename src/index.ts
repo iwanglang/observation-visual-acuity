@@ -47,11 +47,24 @@ const visualAcuityScales: Record<'foot' | 'metre', VisualAcuityScale[]> = {
 /**
  * Returns an array of VisualAcuityScale objects based on the given unit.
  *
- * @param {string} unit - The unit of measurement for the visual acuity scales. Can be 'Foot' or 'Metre'.
+ * @param {string} unitChart - The unit of measurement for the visual acuity scales. Can be 'foot' or 'metre'.
  * @return {VisualAcuityScale[]} An array of VisualAcuityScale objects representing different visual acuity scales.
  */
-export function getVisualAcuityScales(unit: 'foot' | 'metre'): VisualAcuityScale[] {
-  return visualAcuityScales[unit];
+export function getVisualAcuityScales(unitChart: 'foot' | 'metre'): VisualAcuityScale[] {
+  return visualAcuityScales[unitChart];
+}
+
+/**
+ * Converts a LogMAR value to the corresponding visual acuity scale based on the given unit chart.
+ *
+ * @param {number} logMAR - The LogMAR value to be converted.
+ * @param {'foot' | 'metre'} unitChart - The unit chart to use for the conversion. Valid values are 'foot' and 'metre'.
+ * @return {string | undefined} The corresponding visual acuity scale display value. Returns undefined if the LogMAR value is not found.
+ */
+export function convertLogMARToVisualAcuityScale(logMAR: number, unitChart: 'foot' | 'metre'): string {
+  const visualAcuityScale = visualAcuityScales[unitChart].find(scale => scale.LogMAR === logMAR);
+  if(!visualAcuityScale) throw new Error('LogMAR not found');
+  return visualAcuityScale.display;
 }
 
 /**
