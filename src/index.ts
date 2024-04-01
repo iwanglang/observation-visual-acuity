@@ -105,6 +105,7 @@ export class ObservationVisualAcuity {
   /**
    * Converts Snellen's numerical aperture ratio (Snellen numerator/Snellen denominator)
    * to Log MAR (Logarithmic Magnitude of Acuity Ratio).
+   * @summary LogMAR VA = 0.1 + LogMAR value of the best line read – 0.02 X (number of optotypes read)
    *
    * @param {number} snellenNumerator - The numerator of the Snellen aperture ratio.
    * @param {number} snellenDenominator - The denominator of the Snellen aperture ratio.
