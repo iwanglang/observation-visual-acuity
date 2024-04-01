@@ -64,7 +64,7 @@ export default defineConfig({
         showVerboseMessages: true,
       },
       afterBuild: async () => {
-        if (existsSync('./dist/index.d.ts')) renameSync('./dist/index.d.ts', './dist/index.d.mts');
+        if (existsSync('./dist/index.d.ts')) copyFileSync('./dist/index.d.ts', './dist/index.d.mts');
       }
     }),
   ],

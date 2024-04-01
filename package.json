@@ -1,6 +1,6 @@
 {
   "name": "@iwanglang/observation-visual-acuity",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Observation Visual Acuity",
   "type": "module",
   "exports": {
@@ -15,7 +15,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "prepack": "bun run build",
-    "npm:publish": "npm publish --access=public"
+    "npm:publish": "npm publish --access=public",
+    "jsr:publish": "npx jsr publish",
+    "publish": "bun run npm:publish && bun run jsr:publish"
   },
   "devDependencies": {
     "@rollup/plugin-babel": "^6.0.4",
