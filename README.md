@@ -23,24 +23,31 @@ Import:
 
 ```js
 // ESM / Typescript
-import { getVisualAcuityScales } from "@iwanglang/observation-visual-acuity";
+import { ObservationVisualAcuity } from "@iwanglang/observation-visual-acuity";
 
 // CommonJS
 const {
-  getVisualAcuityScales,
+  ObservationVisualAcuity,
 } = require("@iwanglang/observation-visual-acuity");
 ```
 
 ## 🥸 Get Visual Acuity Scale for create Chart
 
 ```typescript
-import { getVisualAcuityScales } from "@iwanglang/observation-visual-acuity";
+import { ObservationVisualAcuity } from "@iwanglang/observation-visual-acuity";
 
-const visualAcuityScaleFoot = getVisualAcuityScales("foot");
-const visualAcuityScaleMetre = getVisualAcuityScales("metre");
+const visualAcuity = new ObservationVisualAcuity();
+const visualAcuityScaleFoot = visualAcuity.getSnellenChartScales("foot");
+const visualAcuityScaleMetre = visualAcuity.getSnellenChartScales("metre");
+
+console.log(visualAcuityScaleFoot[0]);
+// { "display": "20/200", "numerator": 20, "denominator": 200, "LogMAR": 1.00 }
+
+console.log(visualAcuityScaleMetre[0]);
+// { "display": "6/60", "numerator": 6, "denominator": 60, "LogMAR": 1.00 }
 ```
 
-use `getVisualAcuityScales` function to get list of Visual Acuity Scale for prepare data of Visual Acuity that will save into server
+use `getSnellenChartScales` function to get list of Visual Acuity Scale for prepare data of Visual Acuity that will save into server
 
 |  Foot   | Metre | LogMAR |
 | :-----: | :---: | :----: |
