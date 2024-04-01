@@ -16,14 +16,11 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'observation-visual-acuity',
-      formats: ['es'],
+      formats: ['es', 'cjs'],
       fileName: 'index',
     },
     emptyOutDir: false,
     rollupOptions: {
-      output: {
-        entryFileNames: `[name].mjs`,
-      },
       plugins: [
         nodeResolve({
           allowExportsFolderMapping: true,
@@ -64,7 +61,11 @@ export default defineConfig({
         showVerboseMessages: true,
       },
       afterBuild: async () => {
-        if (existsSync('./dist/index.d.ts')) copyFileSync('./dist/index.d.ts', './dist/index.d.mts');
+        if (existsSync('./dist/index.d.ts')){
+          copyFileSync('./dist/index.d.ts', './dist/index.d.mts');
+          copyFileSync('./dist/index.d.ts', './dist/index.d.cts');
+        }
+        if (existsSync('./dist/index.js')) copyFileSync('./dist/index.js', './dist/index.mjs');
       }
     }),
   ],
