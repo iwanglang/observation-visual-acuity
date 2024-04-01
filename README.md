@@ -37,13 +37,13 @@ const {
 import { ObservationVisualAcuity } from "@iwanglang/observation-visual-acuity";
 
 const visualAcuity = new ObservationVisualAcuity();
-const visualAcuityScaleFoot = visualAcuity.getSnellenChartScales("foot");
-const visualAcuityScaleMetre = visualAcuity.getSnellenChartScales("metre");
+const snellenChartScaleFoot = visualAcuity.getSnellenChartScales("foot");
+const snellenChartScaleMetre = visualAcuity.getSnellenChartScales("metre");
 
-console.log(visualAcuityScaleFoot[0]);
+console.log(snellenChartScaleFoot[0]);
 // { "display": "20/200", "numerator": 20, "denominator": 200, "LogMAR": 1.00 }
 
-console.log(visualAcuityScaleMetre[0]);
+console.log(snellenChartScaleMetre[0]);
 // { "display": "6/60", "numerator": 6, "denominator": 60, "LogMAR": 1.00 }
 ```
 
