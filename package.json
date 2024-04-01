@@ -1,6 +1,6 @@
 {
   "name": "@iwanglang/observation-visual-acuity",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Observation Visual Acuity",
   "exports": {
     ".": {
@@ -20,7 +20,7 @@
     "preview": "vite preview",
     "prepack": "bun run build",
     "npm:publish": "npm publish --access=public",
-    "jsr:publish": "npx jsr publish",
+    "jsr:publish": "jsr publish",
     "all:publish": "bun run npm:publish && bun run jsr:publish"
   },
   "devDependencies": {

@@ -31,7 +31,7 @@ const {
 } = require("@iwanglang/observation-visual-acuity");
 ```
 
-## 🥸 Get Visual Acuity Scale for create Chart
+## 🥸 Get Snellen Scale for create Chart
 
 ```typescript
 import { ObservationVisualAcuity } from "@iwanglang/observation-visual-acuity";
@@ -47,7 +47,9 @@ console.log(snellenChartScaleMetre[0]);
 // { "display": "6/60", "numerator": 6, "denominator": 60, "LogMAR": 1.00 }
 ```
 
-use `getSnellenChartScales` function to get list of Visual Acuity Scale for prepare data of Visual Acuity that will save into server
+use `getSnellenChartScales` function to get list of snellen scales for prepare data of Visual Acuity that will save into server
+
+### Example for Snellen Chart
 
 |  Foot   | Metre | LogMAR |
 | :-----: | :---: | :----: |
@@ -65,3 +67,20 @@ use `getSnellenChartScales` function to get list of Visual Acuity Scale for prep
 |  20/16  | 6/4.8 | −0.10  |
 | 20/12.5 | 6/3.8 | −0.20  |
 |  20/10  |  6/3  | −0.30  |
+
+## 🥸 Convert Snellen to LogMAR
+
+```typescript
+import { ObservationVisualAcuity } from "@iwanglang/observation-visual-acuity";
+
+const visualAcuity = new ObservationVisualAcuity();
+const snellenChartScaleMetre = visualAcuity.getSnellenChartScales("metre");
+
+console.log(snellenChartScaleMetre[0]);
+// { "display": "6/60", "numerator": 6, "denominator": 60, "LogMAR": 1.00 }
+
+// LogMAR VA = 0.1 + LogMAR value of the best line read – 0.02 X (number of optotypes read)
+// default optotypesRead is -2
+console.log(`LogMAR is ${visualAcuity.convertSnellenToLogMAR(snellenChartScaleMetre[0].numerator, snellenChartScaleMetre[0].denominator)}`);
+// LogMAR is 1
+```
