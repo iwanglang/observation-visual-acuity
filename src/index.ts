@@ -229,11 +229,11 @@ export class ObservationVisualAcuity {
    * @param {number} LogMAR - The LogMAR value for visual acuity
    * @return {Promise<Observation>} The created Observation resource
    */
-  public async createLogMARVisualAcuity(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
+  public async createLogMARVisualAcuity(subjectReference: string, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
     try{
       if(!this.fhirServer) throw new Error(`FHIR server not set`);
       let headers: HeadersInit = new Headers();
-      const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
+      const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, undefined, snomedCodeBodySite, LogMAR);
       if(this.token) headers.append('Authorization', this.token);
       const resource = await ofetch<Observation>('/Observation', {
         baseURL: this.fhirServer,
@@ -261,7 +261,53 @@ export class ObservationVisualAcuity {
    * @param {number} LogMAR - The LogMAR value for visual acuity
    * @return {Promise<Observation>} The created or updated observation resource
    */
-  public async createOrUpdateLogMARVisualAcuity(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
+  public async createOrUpdateLogMARVisualAcuity(subjectReference: string, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, undefined, snomedCodeBodySite, LogMAR);
+      if(this.token) headers.append('Authorization', this.token);
+      const resource = await ofetch<Observation>('/Observation', {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'PUT',
+        headers: headers,
+        body: observationResource,
+        params: {
+          category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        },
+      });
+      return resource;
+    }catch(error){
+      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+    }
+  }
+
+  public async createLogMARVisualAcuityWithEncounter(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
+      if(this.token) headers.append('Authorization', this.token);
+      const resource = await ofetch<Observation>('/Observation', {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'POST',
+        headers: headers,
+        body: observationResource,
+        params: {
+          category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        },
+      });
+      return resource;
+    }catch(error){
+      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+    }
+  }
+
+  public async createOrUpdateLogMARVisualAcuityWithEncounter(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
     try{
       if(!this.fhirServer) throw new Error(`FHIR server not set`);
       let headers: HeadersInit = new Headers();

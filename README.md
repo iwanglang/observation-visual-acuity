@@ -84,3 +84,17 @@ console.log(snellenChartScaleMetre[0]);
 console.log(`LogMAR is ${visualAcuity.convertSnellenToLogMAR(snellenChartScaleMetre[0].numerator, snellenChartScaleMetre[0].denominator)}`);
 // LogMAR is 1
 ```
+
+## 🥸 Create Visual Acuity to Fhir Server
+
+```typescript
+import { ObservationVisualAcuity, SnomedCodeBodySite } from "@iwanglang/observation-visual-acuity";
+
+const visualAcuity = new ObservationVisualAcuity('https://hapi.fhir.org/baseR4');
+
+// Set Authorization for Fhir Server that require authentication
+visualAcuity.setToken('Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c');
+
+// Create VisualAcuity value 0.60 LogMAR with bodySite left eye structure to Fhir Server
+visualAcuity.createLogMARVisualAcuity('Patient/1', SnomedCodeBodySite.LeftEyeStructure, 0.60);
+```
