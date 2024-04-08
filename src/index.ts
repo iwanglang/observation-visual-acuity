@@ -242,8 +242,8 @@ export class ObservationVisualAcuity {
         method: 'POST',
         headers: headers,
         body: observationResource,
-        params: {
-          category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        query: {
+          category: encodeURIComponent(`http://terminology.hl7.org/CodeSystem/observation-category|exam`),
         },
       });
       return resource;
@@ -274,8 +274,8 @@ export class ObservationVisualAcuity {
         method: 'PUT',
         headers: headers,
         body: observationResource,
-        params: {
-          category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        query: {
+          category: encodeURIComponent(`http://terminology.hl7.org/CodeSystem/observation-category|exam`),
         },
       });
       return resource;
@@ -297,8 +297,8 @@ export class ObservationVisualAcuity {
         method: 'POST',
         headers: headers,
         body: observationResource,
-        params: {
-          category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        query: {
+          category: encodeURIComponent(`http://terminology.hl7.org/CodeSystem/observation-category|exam`),
         },
       });
       return resource;
@@ -320,8 +320,8 @@ export class ObservationVisualAcuity {
         method: 'PUT',
         headers: headers,
         body: observationResource,
-        params: {
-          category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        query: {
+          category: encodeURIComponent(`http://terminology.hl7.org/CodeSystem/observation-category|exam`),
         },
       });
       return resource;
