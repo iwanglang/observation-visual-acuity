@@ -15,6 +15,18 @@ export interface SnellenChartScale {
 }
 
 /**
+ * Enumeration of SNOMED CT codes for visual acuity body site.
+ *
+ * @export
+ * @enum {string}
+ */
+export enum SnomedCodeBodySite {
+  LeftEyeStructure = '8966001',
+  RightEyeStructure = '18944008',
+}
+
+
+/**
  * Class for interacting with the ObservationVisualAcuity FHIR resource.
  *
  * @class
@@ -34,39 +46,45 @@ export class ObservationVisualAcuity {
   private token: string | undefined;
 
   private optotypesRead: number;
-
+  
   private snellenChartScales: Record<'foot' | 'metre', SnellenChartScale[]> = {
     'foot': [
-      { display: `20/200`, numerator: 20, denominator: 200, LogMAR: 1.00 },
-      { display: `20/160`, numerator: 20, denominator: 160, LogMAR: 0.90 },
-      { display: `20/125`, numerator: 20, denominator: 125, LogMAR: 0.80 },
-      { display: `20/100`, numerator: 20, denominator: 100, LogMAR: 0.70 },
-      { display: `20/80`, numerator: 20, denominator: 80, LogMAR: 0.60 },
-      { display: `20/63`, numerator: 20, denominator: 63, LogMAR: 0.50 },
-      { display: `20/50`, numerator: 20, denominator: 50, LogMAR: 0.40 },
-      { display: `20/40`, numerator: 20, denominator: 40,  LogMAR: 0.30 },
-      { display: `20/32`, numerator: 20, denominator: 32, LogMAR: 0.20 },
-      { display: `20/25`, numerator: 20, denominator: 25, LogMAR: 0.10 },
       { display: `20/20`, numerator: 20, denominator: 20, LogMAR: 0.00 },
-      { display: `20/16`, numerator: 20, denominator: 16, LogMAR: -0.10 },
-      { display: `20/12.5`, numerator: 20, denominator: 12.5, LogMAR: -0.20 },
-      { display: `20/10`, numerator: 20, denominator: 10, LogMAR: -0.30 },
+      { display: `20/25`, numerator: 20, denominator: 25, LogMAR: 0.10 },
+      { display: `20/32`, numerator: 20, denominator: 32, LogMAR: 0.20 },
+      { display: `20/40`, numerator: 20, denominator: 40,  LogMAR: 0.30 },
+      { display: `20/50`, numerator: 20, denominator: 50, LogMAR: 0.40 },
+      { display: `20/63`, numerator: 20, denominator: 63, LogMAR: 0.50 },
+      { display: `20/80`, numerator: 20, denominator: 80, LogMAR: 0.60 },
+      { display: `20/100`, numerator: 20, denominator: 100, LogMAR: 0.70 },
+      { display: `20/125`, numerator: 20, denominator: 125, LogMAR: 0.80 },
+      { display: `20/160`, numerator: 20, denominator: 160, LogMAR: 0.90 },
+      { display: `20/200`, numerator: 20, denominator: 200, LogMAR: 1.00 },
+      { display: `20/250`, numerator: 20, denominator: 250, LogMAR: 1.10 },
+      { display: `20/300`, numerator: 20, denominator: 300, LogMAR: 1.20 },
+      { display: `20/400`, numerator: 20, denominator: 400, LogMAR: 1.30 },
+      { display: `20/500`, numerator: 20, denominator: 500, LogMAR: 1.40 },
+      { display: `20/600`, numerator: 20, denominator: 600, LogMAR: 1.50 },
+      { display: `20/800`, numerator: 20, denominator: 800, LogMAR: 1.60 },
     ],
     'metre': [
-      { display: `6/60`, numerator: 6, denominator: 60, LogMAR: 1.00 },
-      { display: `6/48`, numerator: 6, denominator: 48, LogMAR: 0.90 },
-      { display: `6/38`, numerator: 6, denominator: 38, LogMAR: 0.80 },
-      { display: `6/30`, numerator: 6, denominator: 30, LogMAR: 0.70 },
-      { display: `6/24`, numerator: 6, denominator: 24, LogMAR: 0.60 },
-      { display: `6/18`, numerator: 6, denominator: 18, LogMAR: 0.50 },
-      { display: `6/15`, numerator: 6, denominator: 15, LogMAR: 0.40 },
-      { display: `6/12`, numerator: 6, denominator: 12, LogMAR: 0.30 },
-      { display: `6/9.5`, numerator: 6, denominator: 9.5, LogMAR: 0.20 },
-      { display: `6/7.5`, numerator: 6, denominator: 7.5, LogMAR: 0.10 },
       { display: `6/6`, numerator: 6, denominator: 6, LogMAR: 0.00 },
-      { display: `6/4.8`, numerator: 6, denominator: 4.8, LogMAR: -0.10 },
-      { display: `6/3.8`, numerator: 6, denominator: 3.8, LogMAR: -0.20 },
-      { display: `6/3`, numerator: 6, denominator: 3, LogMAR: -0.30 },
+      { display: `6/7.5`, numerator: 6, denominator: 7.5, LogMAR: 0.10 },
+      { display: `6/9.5`, numerator: 6, denominator: 9.5, LogMAR: 0.20 },
+      { display: `6/12`, numerator: 6, denominator: 12, LogMAR: 0.30 },
+      { display: `6/15`, numerator: 6, denominator: 15, LogMAR: 0.40 },
+      { display: `6/19`, numerator: 6, denominator: 19, LogMAR: 0.50 },
+      { display: `6/24`, numerator: 6, denominator: 24, LogMAR: 0.60 },
+      { display: `6/30`, numerator: 6, denominator: 30, LogMAR: 0.70 },
+      { display: `6/38`, numerator: 6, denominator: 38, LogMAR: 0.80 },
+      { display: `6/48`, numerator: 6, denominator: 48, LogMAR: 0.90 },
+      { display: `6/60`, numerator: 6, denominator: 60, LogMAR: 1.00 },
+      { display: `6/76`, numerator: 6, denominator: 76, LogMAR: 1.10 },
+      { display: `6/96`, numerator: 6, denominator: 96, LogMAR: 1.20 },
+      { display: `6/120`, numerator: 6, denominator: 120, LogMAR: 1.30 },
+      { display: `6/152`, numerator: 6, denominator: 152, LogMAR: 1.40 },
+      { display: `6/192`, numerator: 6, denominator: 192, LogMAR: 1.50 },
+      { display: `6/240`, numerator: 6, denominator: 240, LogMAR: 1.60 },
     ]
   };
 
@@ -87,18 +105,12 @@ export class ObservationVisualAcuity {
    *
    * @param {string} fhirServer - The URL of the FHIR server.
    * @param {string} token - The authentication token.
-   * @throws {Error} If the FHIR server URL or token is not provided.
    */
   public initialisation(fhirServer: string, token: string) {
-    if (fhirServer === undefined) {
-      throw new Error('FHIR server URL is required');
-    }
-    if (token === undefined) {
-      throw new Error('Token is required');
-    }
     this.fhirServer = fhirServer;
     this.token = token;
   }
+
 
   /**
    * Sets the token for the class.
