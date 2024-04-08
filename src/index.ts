@@ -1,7 +1,8 @@
-import type { OperationOutcome as R4OperationOutcome, Observation as R4Observation } from 'fhir/r4';
-import type { OperationOutcome as R5OperationOutcome, Observation as R5Observation } from 'fhir/r5';
+import type { OperationOutcome as R4OperationOutcome, Bundle as R4Bundle, Observation as R4Observation } from 'fhir/r4';
+import type { OperationOutcome as R5OperationOutcome, Bundle as R5Bundle, Observation as R5Observation } from 'fhir/r5';
 import { FetchError, ofetch } from 'ofetch';
 
+type Bundle = R4Bundle | R5Bundle;
 type Observation = R4Observation | R5Observation;
 type OperationOutcome = R4OperationOutcome | R5OperationOutcome;
 
@@ -235,16 +236,16 @@ export class ObservationVisualAcuity {
       let headers: HeadersInit = new Headers();
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, undefined, snomedCodeBodySite, LogMAR);
       if(this.token) headers.append('Authorization', this.token);
-      const resource = await ofetch<Observation>('/Observation', {
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+      }).toString();
+      const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
         retry: 3,
         retryDelay: 500,
         method: 'POST',
         headers: headers,
         body: observationResource,
-        query: {
-          category: encodeURIComponent(`http://terminology.hl7.org/CodeSystem/observation-category|exam`),
-        },
       });
       return resource;
     }catch(error){
@@ -267,16 +268,16 @@ export class ObservationVisualAcuity {
       let headers: HeadersInit = new Headers();
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, undefined, snomedCodeBodySite, LogMAR);
       if(this.token) headers.append('Authorization', this.token);
-      const resource = await ofetch<Observation>('/Observation', {
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+      }).toString();
+      const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
         retry: 3,
         retryDelay: 500,
         method: 'PUT',
         headers: headers,
         body: observationResource,
-        query: {
-          category: encodeURIComponent(`http://terminology.hl7.org/CodeSystem/observation-category|exam`),
-        },
       });
       return resource;
     }catch(error){
@@ -290,16 +291,16 @@ export class ObservationVisualAcuity {
       let headers: HeadersInit = new Headers();
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
       if(this.token) headers.append('Authorization', this.token);
-      const resource = await ofetch<Observation>('/Observation', {
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+      }).toString();
+      const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
         retry: 3,
         retryDelay: 500,
         method: 'POST',
         headers: headers,
         body: observationResource,
-        query: {
-          category: encodeURIComponent(`http://terminology.hl7.org/CodeSystem/observation-category|exam`),
-        },
       });
       return resource;
     }catch(error){
@@ -313,18 +314,42 @@ export class ObservationVisualAcuity {
       let headers: HeadersInit = new Headers();
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
       if(this.token) headers.append('Authorization', this.token);
-      const resource = await ofetch<Observation>('/Observation', {
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+      }).toString();
+      const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
         retry: 3,
         retryDelay: 500,
         method: 'PUT',
         headers: headers,
         body: observationResource,
-        query: {
-          category: encodeURIComponent(`http://terminology.hl7.org/CodeSystem/observation-category|exam`),
-        },
       });
       return resource;
+    }catch(error){
+      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+    }
+  }
+
+  public async getLogMARVisualAcuity(subjectReference: string, snomedCodeBodySite: SnomedCodeBodySite) {
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      if(this.token) headers.append('Authorization', this.token);
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        subject: subjectReference,
+        code: snomedCodeBodySite === SnomedCodeBodySite.LeftEyeStructure ? VisualAcuityMethodValueSet.LogMARVisualAcuityLeftEye : VisualAcuityMethodValueSet.LogMARVisualAcuityRightEye,
+      }).toString();
+      const { entry } = await ofetch<R4Bundle<Observation> | R5Bundle<Observation>>(`/Observation?${queryString}`, {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'GET',
+        headers: headers,
+      });
+      const observations = entry?.filter((BundleEntry) => BundleEntry?.resource)?.flatMap<Observation>((BundleEntry) => [BundleEntry.resource as Observation]) ?? [];
+      return observations
     }catch(error){
       throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
     }

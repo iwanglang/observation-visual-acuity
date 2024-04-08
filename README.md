@@ -11,12 +11,6 @@ npm i @iwanglang/observation-visual-acuity
 # yarn
 yarn add @iwanglang/observation-visual-acuity
 
-# jsr npm
-npx jsr add @iwanglang/observation-visual-acuity
-
-# jsr yarn
-yarn dlx jsr add @iwanglang/observation-visual-acuity
-
 ```
 
 Import:
