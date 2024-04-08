@@ -1,3 +1,10 @@
+import type { OperationOutcome as R4OperationOutcome, Observation as R4Observation } from 'fhir/r4';
+import type { OperationOutcome as R5OperationOutcome, Observation as R5Observation } from 'fhir/r5';
+import { FetchError, ofetch } from 'ofetch';
+
+type Observation = R4Observation | R5Observation;
+type OperationOutcome = R4OperationOutcome | R5OperationOutcome;
+
 /**
  * Interface representing a visual acuity scale on a Snellen chart.
  *
@@ -23,6 +30,11 @@ export interface SnellenChartScale {
 export enum SnomedCodeBodySite {
   LeftEyeStructure = '8966001',
   RightEyeStructure = '18944008',
+}
+
+enum VisualAcuityMethodValueSet {
+  LogMARVisualAcuityLeftEye = '413077008',
+  LogMARVisualAcuityRightEye = '413078003'
 }
 
 
@@ -157,5 +169,118 @@ export class ObservationVisualAcuity {
   public convertSnellenToLogMAR(numerator: number, denominator: number): number {
     if(denominator === 0) throw new Error('Denominator cannot be 0');
     return Number(((Math.log10((numerator/denominator)))-(this.optotypesRead*0.02)).toFixed(1));
+  }
+  
+  /**
+   * Creates a LogMAR visual acuity resource for a given subject, body site, and LogMAR value.
+   *
+   * @param {string} subjectReference - The reference to the subject for whom the observation is being made.
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - The SNOMED code for the body site being observed.
+   * @param {number} LogMAR - The LogMAR value representing visual acuity.
+   * @return {Observation} The created LogMAR visual acuity resource.
+   */
+  private createLogMARVisualAcuityResource(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Observation {
+    return {
+      resourceType: 'Observation',
+      status: 'final',
+      category: [
+        {
+          coding: [
+            {
+              system : "http://terminology.hl7.org/CodeSystem/observation-category",
+              code : "exam",
+              display : "Exam"
+            }
+          ]
+        }
+      ],
+      code: {
+        coding: [
+          {
+            system: "http://snomed.info/sct",
+            code: snomedCodeBodySite === SnomedCodeBodySite.LeftEyeStructure ? VisualAcuityMethodValueSet.LogMARVisualAcuityLeftEye : VisualAcuityMethodValueSet.LogMARVisualAcuityRightEye,
+          }
+        ],
+      },
+      subject: {
+        reference: subjectReference,
+      },
+      encounter: encounterReference ? { reference: encounterReference } : undefined,
+      bodySite: {
+        coding: [
+          {
+            system: "http://snomed.info/sct",
+            code: snomedCodeBodySite
+          }
+        ]
+      },
+      valueQuantity : {
+        value : LogMAR,
+        unit : "LogMAR"
+      },
+    }
+  }
+
+  /**
+   * Creates a LogMAR visual acuity observation for a subject.
+   *
+   * @param {string} subjectReference - The reference to the subject
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - The SNOMED code for the body site
+   * @param {number} LogMAR - The LogMAR value for visual acuity
+   * @return {Promise<Observation>} The created Observation resource
+   */
+  public async createLogMARVisualAcuity(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
+      if(this.token) headers.append('Authorization', this.token);
+      const resource = await ofetch<Observation>('/Observation', {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'POST',
+        headers: headers,
+        body: observationResource,
+        params: {
+          category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        },
+      });
+      return resource;
+    }catch(error){
+      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+    }
+  }
+
+  /**
+   * Create or update LogMAR visual acuity observation for a subject.
+   *
+   * @param {string} subjectReference - The reference to the subject
+   * @param {string | undefined | null} encounterReference - The reference to the encounter (optional)
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - The SNOMED code for the body site
+   * @param {number} LogMAR - The LogMAR value for visual acuity
+   * @return {Promise<Observation>} The created or updated observation resource
+   */
+  public async createOrUpdateLogMARVisualAcuity(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
+      if(this.token) headers.append('Authorization', this.token);
+      const resource = await ofetch<Observation>('/Observation', {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'PUT',
+        headers: headers,
+        body: observationResource,
+        params: {
+          category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        },
+      });
+      return resource;
+    }catch(error){
+      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+    }
   }
 }
