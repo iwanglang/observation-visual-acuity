@@ -76,7 +76,9 @@ export enum SnomedCodeBodySite {
  */
 enum VisualAcuityMethodValueSet {
   LogMARVisualAcuityLeftEye = '413077008',
-  LogMARVisualAcuityRightEye = '413078003'
+  LogMARVisualAcuityRightEye = '413078003',
+  IntraocularPressureLeftEye = '786381000000109',
+  IntraocularPressureRightEye = '786391000000106',
 }
 
 /**
