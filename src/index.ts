@@ -57,6 +57,23 @@ export interface VisualAcuityNormalization {
   unit?: string;
 }
 
+/**
+ * Interface representing the normalized intraocular pressure data.
+ *
+ * @interface IntraocularPressureNormalization
+ * @property {string} id - The identifier of the visual acuity data.
+ * @property {string} patientReference - The reference to the patient resource.
+ * @property {string} code - The SNOMED CT code for the visual acuity method.
+ * @property {string} codeName - The display name of the visual acuity method.
+ * @property {'left-eye' | 'right-eye'} bodySite - The body site of the visual acuity method.
+ * @property {string} effectiveDateTime - The date and time when the visual acuity was taken.
+ * @property {string} display - The display name of the visual acuity result.
+ * @property {string | number} result - The visual acuity result.
+ * @property {string} [unit] - The unit of the visual acuity result.
+ */
+export interface IntraocularPressureNormalization extends VisualAcuityNormalization {}
+
+type ObservationNormalization = VisualAcuityNormalization | IntraocularPressureNormalization;
 
 /**
  * Enumeration of SNOMED CT codes for visual acuity body site.
@@ -621,7 +638,7 @@ export class ObservationVisualAcuity {
    * @param {Observation} observation - the observation data to be normalized
    * @return {VisualAcuityNormalization} the normalized visual acuity object
    */
-  private observationNormalizationHelper(observation: Observation): VisualAcuityNormalization {
+  private observationNormalizationHelper<ObservationNormalization>(observation: Observation) {
     return {
       id: observation?.id || ``,
       patientReference: observation?.subject?.reference ?? ``,
@@ -632,7 +649,7 @@ export class ObservationVisualAcuity {
       display: (observation?.valueQuantity?.value !== undefined) && observation?.valueQuantity?.unit ? `${observation!.valueQuantity!.value} ${observation!.valueQuantity!.unit}` : ``,
       result: observation?.valueQuantity?.value ?? ``,
       unit: observation?.valueQuantity?.unit,
-    }
+    } as ObservationNormalization;
   }
 
   /**
@@ -683,7 +700,7 @@ export class ObservationVisualAcuity {
         headers: headers,
       });
       const observations = entry?.filter((BundleEntry) => BundleEntry?.resource)?.flatMap<Observation>((BundleEntry) => [BundleEntry.resource as Observation]) ?? [];
-      const visualAcuityNormalization = await Promise.all(observations.map((observation) => this.observationNormalizationHelper(observation)));
+      const visualAcuityNormalization = await Promise.all(observations.map((observation) => this.observationNormalizationHelper<VisualAcuityNormalization>(observation)));
       return visualAcuityNormalization;
     }catch(error){
       throw new Error(OperationOutcomeHelper(error, `Can't get VisualAcuity`));
@@ -743,7 +760,7 @@ export class ObservationVisualAcuity {
         headers: headers,
       });
       const observations = entry?.filter((BundleEntry) => BundleEntry?.resource)?.flatMap<Observation>((BundleEntry) => [BundleEntry.resource as Observation]) ?? [];
-      const visualAcuityNormalization = await Promise.all(observations.map((observation) => this.observationNormalizationHelper(observation)));
+      const visualAcuityNormalization = await Promise.all(observations.map((observation) => this.observationNormalizationHelper<IntraocularPressureNormalization>(observation)));
       return visualAcuityNormalization;
     }catch(error){
       throw new Error(OperationOutcomeHelper(error, `Can't get Intraocular Pressure`));
