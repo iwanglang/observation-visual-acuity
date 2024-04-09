@@ -17,8 +17,8 @@ type OperationOutcome = R4OperationOutcome | R5OperationOutcome;
  */
 export interface SnellenChartScale {
   display: string;
-  numerator: number;
-  denominator: number;
+  numerator?: number;
+  denominator?: number;
   LogMAR: number;
 }
 
@@ -87,7 +87,6 @@ enum VisualAcuityMethodValueSet {
  * @return {string} The generated error message.
  */
 function OperationOutcomeHelper(error: unknown, errorMessage?: string): string {
-  console.log((error as FetchError).response)
   if(error instanceof FetchError && Array.isArray(error?.response?._data?.issue)) return ((error as FetchError<OperationOutcome>)?.response?._data?.issue ?? []).flatMap((issue) => issue.diagnostics).join(', ');
   return (error as Error)?.message || errorMessage || 'Internal Server Error';
 }
@@ -421,6 +420,12 @@ export class ObservationVisualAcuity {
     }
   }
 
+  /**
+   * A function that normalizes observation data into a visual acuity normalization object.
+   *
+   * @param {Observation} observation - the observation data to be normalized
+   * @return {VisualAcuityNormalization} the normalized visual acuity object
+   */
   private observationNormalizationHelper(observation: Observation): VisualAcuityNormalization {
     return {
       id: observation?.id || ``,
@@ -430,6 +435,28 @@ export class ObservationVisualAcuity {
       bodySite: observation?.bodySite?.coding?.[0]?.code === SnomedCodeBodySite.LeftEyeStructure ? 'left-eye' : 'right-eye',
       effectiveDateTime: observation?.effectiveDateTime ?? ``,
       display: (observation?.valueQuantity?.value !== undefined) && observation?.valueQuantity?.unit ? `${observation!.valueQuantity!.value} ${observation!.valueQuantity!.unit}` : ``,
+      result: observation?.valueQuantity?.value ?? ``,
+      unit: observation?.valueQuantity?.unit,
+    }
+  }
+
+  /**
+   * This function helps with observation normalization using a Snellen chart.
+   *
+   * @param {'foot' | 'metre'} unitChart - the unit of the Snellen chart
+   * @param {Observation} observation - the observation to be normalized
+   * @return {VisualAcuityNormalization} the normalized visual acuity
+   */
+  private observationNormalizationWithSnellenChartHelper(unitChart: 'foot' | 'metre', observation: Observation): VisualAcuityNormalization {
+    const snellenChartScale = this.getSnellenChartScales(unitChart).find((item) => item.LogMAR === observation?.valueQuantity?.value);
+    return {
+      id: observation?.id || ``,
+      patientReference: observation?.subject?.reference ?? ``,
+      code: observation?.code?.coding?.[0]?.code ?? ``,
+      codeName: observation?.code?.coding?.[0]?.display ?? null,
+      bodySite: observation?.bodySite?.coding?.[0]?.code === SnomedCodeBodySite.LeftEyeStructure ? 'left-eye' : 'right-eye',
+      effectiveDateTime: observation?.effectiveDateTime ?? ``,
+      display: snellenChartScale ? snellenChartScale.display : (observation?.valueQuantity?.value !== undefined) && observation?.valueQuantity?.unit ? `${observation!.valueQuantity!.value} ${observation!.valueQuantity!.unit}` : ``,
       result: observation?.valueQuantity?.value ?? ``,
       unit: observation?.valueQuantity?.unit,
     }
@@ -462,6 +489,40 @@ export class ObservationVisualAcuity {
       });
       const observations = entry?.filter((BundleEntry) => BundleEntry?.resource)?.flatMap<Observation>((BundleEntry) => [BundleEntry.resource as Observation]) ?? [];
       const visualAcuityNormalization = await Promise.all(observations.map((observation) => this.observationNormalizationHelper(observation)));
+      return visualAcuityNormalization;
+    }catch(error){
+      throw new Error(OperationOutcomeHelper(error, `Can't get VisualAcuity`));
+    }
+  }
+
+  /**
+   * A function to get LogMAR Visual Acuity with Snellen Chart.
+   *
+   * @param {'foot' | 'metre'} unitChart - the unit of the chart
+   * @param {string} subjectReference - reference of the subject
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - the Snomed code of the body site
+   * @return {Promise<visualAcuityNormalization>} the normalized visual acuity
+   */
+  public async getLogMARVisualAcuityWithSnellenChart(unitChart: 'foot' | 'metre', subjectReference: string, snomedCodeBodySite: SnomedCodeBodySite) {
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      if(this.headers) headers = this.headers;
+      if(this.token) headers.append('Authorization', this.token);
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        subject: subjectReference,
+        code: snomedCodeBodySite === SnomedCodeBodySite.LeftEyeStructure ? VisualAcuityMethodValueSet.LogMARVisualAcuityLeftEye : VisualAcuityMethodValueSet.LogMARVisualAcuityRightEye,
+      }).toString();
+      const { entry } = await ofetch<R4Bundle<Observation> | R5Bundle<Observation>>(`/Observation?${queryString}`, {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'GET',
+        headers: headers,
+      });
+      const observations = entry?.filter((BundleEntry) => BundleEntry?.resource)?.flatMap<Observation>((BundleEntry) => [BundleEntry.resource as Observation]) ?? [];
+      const visualAcuityNormalization = await Promise.all(observations.map((observation) => this.observationNormalizationWithSnellenChartHelper(unitChart, observation)));
       return visualAcuityNormalization;
     }catch(error){
       throw new Error(OperationOutcomeHelper(error, `Can't get VisualAcuity`));
