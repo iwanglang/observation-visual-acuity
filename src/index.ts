@@ -23,6 +23,42 @@ export interface SnellenChartScale {
 }
 
 /**
+ * Interface representing the normalized visual acuity data.
+ *
+ * @interface VisualAcuityNormalization
+ * @property {string} id - The identifier of the visual acuity data.
+ * @property {string} patientReference - The reference to the patient resource.
+ * @property {string} code - The SNOMED CT code for the visual acuity method.
+ * @property {string} codeName - The display name of the visual acuity method.
+ * @property {'left-eye' | 'right-eye'} bodySite - The body site of the visual acuity method.
+ * @property {string} effectiveDateTime - The date and time when the visual acuity was taken.
+ * @property {string} display - The display name of the visual acuity result.
+ * @property {string | number} result - The visual acuity result.
+ * @property {string} [unit] - The unit of the visual acuity result.
+ */
+export interface VisualAcuityNormalization {
+  /** The identifier of the visual acuity data. */
+  id: string;
+  /** The reference to the patient resource. */
+  patientReference: string;
+  /** The SNOMED CT code for the visual acuity method. */
+  code: string;
+  /** The display name of the visual acuity method. */
+  codeName: string | null;
+  /** The body site of the visual acuity method. */
+  bodySite: 'left-eye' | 'right-eye';
+  /** The date and time when the visual acuity was taken. */
+  effectiveDateTime: string;
+  /** The display name of the visual acuity result. */
+  display: string;
+  /** The visual acuity result. */
+  result: string | number;
+  /** The unit of the visual acuity result. */
+  unit?: string;
+}
+
+
+/**
  * Enumeration of SNOMED CT codes for visual acuity body site.
  *
  * @export
@@ -33,9 +69,26 @@ export enum SnomedCodeBodySite {
   RightEyeStructure = '18944008',
 }
 
+/**
+ * Value set for LogMAR visual acuity for the left or right eye.
+ *
+ * @enum {string}
+ */
 enum VisualAcuityMethodValueSet {
   LogMARVisualAcuityLeftEye = '413077008',
   LogMARVisualAcuityRightEye = '413078003'
+}
+
+/**
+ * Generate a message based on the error object or provided errorMessage.
+ *
+ * @param {unknown} error - The error object to extract the message from.
+ * @param {string} [errorMessage] - An optional error message to use if the error object does not provide one.
+ * @return {string} The generated error message.
+ */
+function OperationOutcomeHelper(error: unknown, errorMessage?: string): string {
+  if(error instanceof FetchError && Array.isArray(error?.response?._data?.issue)) return ((error as FetchError<OperationOutcome>)?.response?._data?.issue ?? []).flatMap((issue) => issue.diagnostics).join(', ');
+  return (error as Error)?.message || errorMessage || 'Internal Server Error';
 }
 
 
@@ -57,6 +110,8 @@ export class ObservationVisualAcuity {
    * @private
    */
   private token: string | undefined;
+
+  private headers: Headers | undefined;
 
   private optotypesRead: number;
   
@@ -132,6 +187,16 @@ export class ObservationVisualAcuity {
    */
   public setToken(token: string) {
     this.token = token;
+  }
+
+  /**
+   * Set the headers for the request.
+   *
+   * @param {HeadersInit} headers - the headers to be set
+   * @return {void} 
+   */
+  public setHearders(headers: Headers) {
+    this.headers = headers;
   }
 
   
@@ -235,6 +300,7 @@ export class ObservationVisualAcuity {
       if(!this.fhirServer) throw new Error(`FHIR server not set`);
       let headers: HeadersInit = new Headers();
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, undefined, snomedCodeBodySite, LogMAR);
+      if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
       const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
@@ -249,7 +315,7 @@ export class ObservationVisualAcuity {
       });
       return resource;
     }catch(error){
-      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+      throw new Error(OperationOutcomeHelper(error, `Can't create for resource Observation`));
     }
   }
 
@@ -267,9 +333,11 @@ export class ObservationVisualAcuity {
       if(!this.fhirServer) throw new Error(`FHIR server not set`);
       let headers: HeadersInit = new Headers();
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, undefined, snomedCodeBodySite, LogMAR);
+      if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
       const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        subject: subjectReference,
       }).toString();
       const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
@@ -281,15 +349,26 @@ export class ObservationVisualAcuity {
       });
       return resource;
     }catch(error){
-      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+      console.log(error)
+      throw new Error(OperationOutcomeHelper(error, `Can't create for resource Observation`));
     }
   }
 
+  /**
+   * A function to create LogMAR Visual Acuity with Encounter.
+   *
+   * @param {string} subjectReference - reference to the subject
+   * @param {string | undefined | null} encounterReference - reference to the encounter
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - SNOMED code for the body site
+   * @param {number} LogMAR - LogMAR value for visual acuity
+   * @return {Promise<Observation>} Promise that resolves to an Observation resource
+   */
   public async createLogMARVisualAcuityWithEncounter(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
     try{
       if(!this.fhirServer) throw new Error(`FHIR server not set`);
       let headers: HeadersInit = new Headers();
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
+      if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
       const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
@@ -304,18 +383,29 @@ export class ObservationVisualAcuity {
       });
       return resource;
     }catch(error){
-      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+      throw new Error(OperationOutcomeHelper(error, `Can't create for resource Observation`));
     }
   }
 
+  /**
+   * A function to create or update LogMAR Visual Acuity with Encounter.
+   *
+   * @param {string} subjectReference - reference to the subject
+   * @param {string | undefined | null} encounterReference - reference to the encounter
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - SNOMED code for the body site
+   * @param {number} LogMAR - LogMAR value for visual acuity
+   * @return {Promise<Observation>} Promise that resolves to an Observation resource
+   */
   public async createOrUpdateLogMARVisualAcuityWithEncounter(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
     try{
       if(!this.fhirServer) throw new Error(`FHIR server not set`);
       let headers: HeadersInit = new Headers();
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
+      if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
       const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        subject: subjectReference,
       }).toString();
       const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
@@ -327,14 +417,36 @@ export class ObservationVisualAcuity {
       });
       return resource;
     }catch(error){
-      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+      throw new Error(OperationOutcomeHelper(error, `Can't create for resource Observation`));
     }
   }
 
+  private observationNormalizationHelper(observation: Observation): VisualAcuityNormalization {
+    return {
+      id: observation?.id || ``,
+      patientReference: observation?.subject?.reference ?? ``,
+      code: observation?.code?.coding?.[0]?.code ?? ``,
+      codeName: observation?.code?.coding?.[0]?.display ?? null,
+      bodySite: observation?.bodySite?.coding?.[0]?.code === SnomedCodeBodySite.LeftEyeStructure ? 'left-eye' : 'right-eye',
+      effectiveDateTime: observation?.effectiveDateTime ?? ``,
+      display: (observation?.valueQuantity?.value !== undefined) && observation?.valueQuantity?.unit ? `${observation!.valueQuantity!.value} ${observation!.valueQuantity!.unit}` : ``,
+      result: observation?.valueQuantity?.value ?? ``,
+      unit: observation?.valueQuantity?.unit,
+    }
+  }
+
+  /**
+   * Retrieves the LogMAR visual acuity for a specific subject and body site using FHIR server.
+   *
+   * @param {string} subjectReference - The reference to the subject
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - The SNOMED code for the body site
+   * @return {Promise<Observation[]>} An array of observations representing the LogMAR visual acuity
+   */
   public async getLogMARVisualAcuity(subjectReference: string, snomedCodeBodySite: SnomedCodeBodySite) {
     try{
       if(!this.fhirServer) throw new Error(`FHIR server not set`);
       let headers: HeadersInit = new Headers();
+      if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
       const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
@@ -349,9 +461,10 @@ export class ObservationVisualAcuity {
         headers: headers,
       });
       const observations = entry?.filter((BundleEntry) => BundleEntry?.resource)?.flatMap<Observation>((BundleEntry) => [BundleEntry.resource as Observation]) ?? [];
-      return observations
+      const visualAcuityNormalization = await Promise.all(observations.map((observation) => this.observationNormalizationHelper(observation)));
+      return visualAcuityNormalization;
     }catch(error){
-      throw (error as FetchError<OperationOutcome>)?.response?._data ?? new Error(`Can't create for resource Observation`);
+      throw new Error(OperationOutcomeHelper(error, `Can't get VisualAcuity`));
     }
   }
 }
