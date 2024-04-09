@@ -134,6 +134,11 @@ export class ObservationVisualAcuity {
       { display: `20/500`, numerator: 20, denominator: 500, LogMAR: 1.40 },
       { display: `20/600`, numerator: 20, denominator: 600, LogMAR: 1.50 },
       { display: `20/800`, numerator: 20, denominator: 800, LogMAR: 1.60 },
+      { display: `FC 3'`, LogMAR: 1.9 },
+      { display: `FC 2'`, LogMAR: 2.0 },
+      { display: `FC 1'`, LogMAR: 2.3 },
+      { display: `FC 1/2'`, LogMAR: 2.6 },
+      { display: `HM`, LogMAR: 3.0 },
     ],
     'metre': [
       { display: `6/6`, numerator: 6, denominator: 6, LogMAR: 0.00 },
@@ -153,6 +158,11 @@ export class ObservationVisualAcuity {
       { display: `6/152`, numerator: 6, denominator: 152, LogMAR: 1.40 },
       { display: `6/192`, numerator: 6, denominator: 192, LogMAR: 1.50 },
       { display: `6/240`, numerator: 6, denominator: 240, LogMAR: 1.60 },
+      { display: `FC 3'`, LogMAR: 1.9 },
+      { display: `FC 2'`, LogMAR: 2.0 },
+      { display: `FC 1'`, LogMAR: 2.3 },
+      { display: `FC 1/2'`, LogMAR: 2.6 },
+      { display: `HM`, LogMAR: 3.0 },
     ]
   };
 
