@@ -1,7 +1,6 @@
 import type { OperationOutcome as R4OperationOutcome, Bundle as R4Bundle, Observation as R4Observation } from 'fhir/r4';
 import type { OperationOutcome as R5OperationOutcome, Bundle as R5Bundle, Observation as R5Observation } from 'fhir/r5';
 import { FetchError, ofetch } from 'ofetch';
-import querystring from 'node:querystring';
 
 type Bundle = R4Bundle | R5Bundle;
 type Observation = R4Observation | R5Observation;
@@ -304,9 +303,9 @@ export class ObservationVisualAcuity {
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, undefined, snomedCodeBodySite, LogMAR);
       if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
-      const queryString = querystring.stringify({
+      const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
-      });
+      }).toString();
       const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
         retry: 3,
@@ -337,10 +336,10 @@ export class ObservationVisualAcuity {
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, undefined, snomedCodeBodySite, LogMAR);
       if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
-      const queryString = querystring.stringify({
+      const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
         subject: subjectReference,
-      });
+      }).toString();
       const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
         retry: 3,
@@ -371,9 +370,9 @@ export class ObservationVisualAcuity {
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
       if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
-      const queryString = querystring.stringify({
+      const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
-      });
+      }).toString();
       const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
         retry: 3,
@@ -404,10 +403,10 @@ export class ObservationVisualAcuity {
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
       if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
-      const queryString = querystring.stringify({
+      const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
         subject: subjectReference,
-      });
+      }).toString();
       const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
         retry: 3,
@@ -449,11 +448,11 @@ export class ObservationVisualAcuity {
       let headers: HeadersInit = new Headers();
       if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
-      const queryString = ({
+      const queryString = new URLSearchParams({
         category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
         subject: subjectReference,
         code: snomedCodeBodySite === SnomedCodeBodySite.LeftEyeStructure ? VisualAcuityMethodValueSet.LogMARVisualAcuityLeftEye : VisualAcuityMethodValueSet.LogMARVisualAcuityRightEye,
-      });
+      }).toString();
       const { entry } = await ofetch<R4Bundle<Observation> | R5Bundle<Observation>>(`/Observation?${queryString}`, {
         baseURL: this.fhirServer,
         retry: 3,
