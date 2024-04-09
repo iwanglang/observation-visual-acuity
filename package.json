@@ -14,6 +14,11 @@
   "files": [
     "dist/**/*"
   ],
+  "keywords": [
+    "observation",
+    "visual",
+    "acuity"
+  ],
   "scripts": {
     "dev": "vite",
     "prebuild": "rimraf dist",
