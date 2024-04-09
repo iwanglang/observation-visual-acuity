@@ -369,12 +369,12 @@ export class ObservationVisualAcuity {
    * A function to create LogMAR Visual Acuity with Encounter.
    *
    * @param {string} subjectReference - reference to the subject
-   * @param {string | undefined | null} encounterReference - reference to the encounter
+   * @param {string} encounterReference - reference to the encounter
    * @param {SnomedCodeBodySite} snomedCodeBodySite - SNOMED code for the body site
    * @param {number} LogMAR - LogMAR value for visual acuity
    * @return {Promise<Observation>} Promise that resolves to an Observation resource
    */
-  public async createLogMARVisualAcuityWithEncounter(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
+  public async createLogMARVisualAcuityWithEncounter(subjectReference: string, encounterReference: string, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
     try{
       if(!this.fhirServer) throw new Error(`FHIR server not set`);
       let headers: HeadersInit = new Headers();
@@ -402,16 +402,199 @@ export class ObservationVisualAcuity {
    * A function to create or update LogMAR Visual Acuity with Encounter.
    *
    * @param {string} subjectReference - reference to the subject
-   * @param {string | undefined | null} encounterReference - reference to the encounter
+   * @param {string} encounterReference - reference to the encounter
    * @param {SnomedCodeBodySite} snomedCodeBodySite - SNOMED code for the body site
    * @param {number} LogMAR - LogMAR value for visual acuity
    * @return {Promise<Observation>} Promise that resolves to an Observation resource
    */
-  public async createOrUpdateLogMARVisualAcuityWithEncounter(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
+  public async createOrUpdateLogMARVisualAcuityWithEncounter(subjectReference: string, encounterReference: string, snomedCodeBodySite: SnomedCodeBodySite, LogMAR: number): Promise<Observation> {
     try{
       if(!this.fhirServer) throw new Error(`FHIR server not set`);
       let headers: HeadersInit = new Headers();
       const observationResource = await this.createLogMARVisualAcuityResource(subjectReference, encounterReference, snomedCodeBodySite, LogMAR);
+      if(this.headers) headers = this.headers;
+      if(this.token) headers.append('Authorization', this.token);
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        subject: subjectReference,
+      }).toString();
+      const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'PUT',
+        headers: headers,
+        body: observationResource,
+      });
+      return resource;
+    }catch(error){
+      throw new Error(OperationOutcomeHelper(error, `Can't create for resource Observation`));
+    }
+  }
+
+  /**
+   * A function to create an Intraocular Pressure resource.
+   *
+   * @param {string} subjectReference - the reference to the subject
+   * @param {string} encounterReference - the reference to the encounter
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - the SNOMED code for the body site
+   * @param {number} iop - the intraocular pressure value
+   * @return {Observation} the created Observation resource
+   */
+  private createIntraocularPressureResource(subjectReference: string, encounterReference: string | undefined | null, snomedCodeBodySite: SnomedCodeBodySite, iop: number): Observation {
+    return {
+      resourceType: 'Observation',
+      status: 'final',
+      category: [
+        {
+          coding: [
+            {
+              system : "http://terminology.hl7.org/CodeSystem/observation-category",
+              code : "exam",
+              display : "Exam"
+            }
+          ]
+        }
+      ],
+      code: {
+        coding: [
+          {
+            system: "http://snomed.info/sct",
+            code: snomedCodeBodySite === SnomedCodeBodySite.LeftEyeStructure ? VisualAcuityMethodValueSet.IntraocularPressureLeftEye : VisualAcuityMethodValueSet.IntraocularPressureRightEye,
+          }
+        ],
+      },
+      subject: {
+        reference: subjectReference,
+      },
+      encounter: encounterReference ? { reference: encounterReference } : undefined,
+      bodySite: {
+        coding: [
+          {
+            system: "http://snomed.info/sct",
+            code: snomedCodeBodySite
+          }
+        ]
+      },
+      valueQuantity : {
+        value : iop,
+        unit : "mmHg"
+      },
+    }
+  }
+
+  /**
+   * Create intraocular pressure resource.
+   *
+   * @param {string} subjectReference - reference to the subject
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - SNOMED code for body site
+   * @param {number} iop - intraocular pressure value
+   * @return {Promise<Observation>} the created resource
+   */
+  public async createIntraocularPressure(subjectReference: string, snomedCodeBodySite: SnomedCodeBodySite, iop: number){
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      const observationResource = await this.createIntraocularPressureResource(subjectReference, undefined, snomedCodeBodySite, iop);
+      if(this.headers) headers = this.headers;
+      if(this.token) headers.append('Authorization', this.token);
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+      }).toString();
+      const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'POST',
+        headers: headers,
+        body: observationResource,
+      });
+      return resource;
+    }catch(error){
+      throw new Error(OperationOutcomeHelper(error, `Can't create for resource Observation`));
+    }
+  }
+
+  /**
+   * Create or update intraocular pressure resource.
+   *
+   * @param {string} subjectReference - reference to the subject
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - SNOMED code for the body site
+   * @param {number} iop - intraocular pressure value
+   * @return {Promise<Observation>} the created or updated Observation resource
+   */
+  public async createOrUpdateIntraocularPressure(subjectReference: string, snomedCodeBodySite: SnomedCodeBodySite, iop: number){
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      const observationResource = await this.createIntraocularPressureResource(subjectReference, undefined, snomedCodeBodySite, iop);
+      if(this.headers) headers = this.headers;
+      if(this.token) headers.append('Authorization', this.token);
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        subject: subjectReference,
+      }).toString();
+      const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'PUT',
+        headers: headers,
+        body: observationResource,
+      });
+      return resource;
+    }catch(error){
+      throw new Error(OperationOutcomeHelper(error, `Can't create for resource Observation`));
+    }
+  }
+
+  /**
+   * Create intraocular pressure resource with Encounter.
+   *
+   * @param {string} subjectReference - reference to the subject
+   * @param {string} encounterReference - reference to the encounter
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - SNOMED code for body site
+   * @param {number} iop - intraocular pressure value
+   * @return {Promise<Observation>} the created resource
+   */
+  public async createIntraocularPressureWithEncounter(subjectReference: string, encounterReference: string, snomedCodeBodySite: SnomedCodeBodySite, iop: number){
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      const observationResource = await this.createIntraocularPressureResource(subjectReference, encounterReference, snomedCodeBodySite, iop);
+      if(this.headers) headers = this.headers;
+      if(this.token) headers.append('Authorization', this.token);
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+      }).toString();
+      const resource = await ofetch<Observation>(`/Observation?${queryString}`, {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'POST',
+        headers: headers,
+        body: observationResource,
+      });
+      return resource;
+    }catch(error){
+      throw new Error(OperationOutcomeHelper(error, `Can't create for resource Observation`));
+    }
+  }
+
+  /**
+   * Create or update intraocular pressure resource with Encounter.
+   *
+   * @param {string} subjectReference - reference to the subject
+   * @param {string} encounterReference - reference to the encounter
+   * @param {SnomedCodeBodySite} snomedCodeBodySite - SNOMED code for the body site
+   * @param {number} iop - intraocular pressure value
+   * @return {Promise<Observation>} the created or updated Observation resource
+   */
+  public async createOrUpdateIntraocularPressureWithEncounter(subjectReference: string, encounterReference: string, snomedCodeBodySite: SnomedCodeBodySite, iop: number){
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      const observationResource = await this.createIntraocularPressureResource(subjectReference, encounterReference, snomedCodeBodySite, iop);
       if(this.headers) headers = this.headers;
       if(this.token) headers.append('Authorization', this.token);
       const queryString = new URLSearchParams({
@@ -538,6 +721,32 @@ export class ObservationVisualAcuity {
       return visualAcuityNormalization;
     }catch(error){
       throw new Error(OperationOutcomeHelper(error, `Can't get VisualAcuity`));
+    }
+  }
+
+  public async getIntraocularPressure(subjectReference: string, snomedCodeBodySite: SnomedCodeBodySite){
+    try{
+      if(!this.fhirServer) throw new Error(`FHIR server not set`);
+      let headers: HeadersInit = new Headers();
+      if(this.headers) headers = this.headers;
+      if(this.token) headers.append('Authorization', this.token);
+      const queryString = new URLSearchParams({
+        category: `http://terminology.hl7.org/CodeSystem/observation-category|exam`,
+        subject: subjectReference,
+        code: snomedCodeBodySite === SnomedCodeBodySite.LeftEyeStructure ? VisualAcuityMethodValueSet.IntraocularPressureLeftEye : VisualAcuityMethodValueSet.IntraocularPressureRightEye,
+      }).toString();
+      const { entry } = await ofetch<R4Bundle<Observation> | R5Bundle<Observation>>(`/Observation?${queryString}`, {
+        baseURL: this.fhirServer,
+        retry: 3,
+        retryDelay: 500,
+        method: 'GET',
+        headers: headers,
+      });
+      const observations = entry?.filter((BundleEntry) => BundleEntry?.resource)?.flatMap<Observation>((BundleEntry) => [BundleEntry.resource as Observation]) ?? [];
+      const visualAcuityNormalization = await Promise.all(observations.map((observation) => this.observationNormalizationHelper(observation)));
+      return visualAcuityNormalization;
+    }catch(error){
+      throw new Error(OperationOutcomeHelper(error, `Can't get Intraocular Pressure`));
     }
   }
 }
